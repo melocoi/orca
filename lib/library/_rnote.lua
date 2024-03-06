@@ -13,15 +13,23 @@ local rnote = function(self, x, y)
   local scale_name = get_scale[1]
   local note_array = get_scale[2]
   local out
+  local test
 
   if mode then
     if mode == 0 then
-      out = self.notes[note_array[math.random(#note_array - 1)]]
+      --out = self.notes[note_array[math.random(#note_array - 1)]] --OLD FUNCTION
+      test = note_array[math.random(#note_array - 1)+1] --modulo around the scale that is selected
+      out = self.notes[((test-1) % 12)+1] --modulo through the array of notes
     else
-      out = self.notes[note_array[math.floor(mode) % (#note_array - 1)]]
+      --out = self.notes[note_array[math.floor(mode) % (#note_array - 1)]] -- OLD FUNCTION
+      test = note_array[((mode-1) % (#note_array-1)+1)] --modulo around the scale that is selected
+      out = self.notes[((test-1) % 12)+1] --modulo through the array of notes
+      --print(test)
     end
   else
-    out = self.notes[note_array[math.random(#note_array - 1)]]
+    --out = self.notes[note_array[math.random(#note_array - 1)]] --OLD FUNCTION
+      test = note_array[math.random(#note_array - 1)+1] --modulo around the scale that is selected
+      out = self.notes[((test-1) % 12)+1] --modulo through the array of notes
   end
 
   self.ports[2][3] = scale_name
