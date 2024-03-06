@@ -5,15 +5,17 @@ local I = function(self, x, y)
   self.ports = { {-1, 0 , "in-step" }, {1, 0, "in-mod" }, {0, 1, "i-out"} }
   self:spawn(self.ports)
 
-  local a = self:listen(self.x - 1, self.y) or 1
-  local b = self:listen(self.x + 1, self.y) or 9
-  local l = self:glyph_at(self.x + 1, self.y)
-
-  b = b ~= a and b or a + 1 if b < a then a, b = b, a end
-  val = (math.floor(a * self.frame) % b) + 1
-
-  local cap = l ~= "." and l == self.up(l) and true
-  local value = cap and self.up(self.chars[val]) or self.chars[val]
+  --updated function to match Orca desktop
+  
+  local step = self:listen(self.x - 1, self.y) or 1
+  local with = self:listen(self.x + 1, self.y) or 9
+  local val = self:listen(self.x, self.y + 1) or 0
+  
+  if with <= 0 then
+    with = 35
+  end
+  
+  local value = self.chars[(((val+ step)-1) % (with))+1]
 
   self:write(0, 1, value)
 end
