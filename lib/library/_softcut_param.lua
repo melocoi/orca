@@ -1,20 +1,30 @@
 local param_ids = {
-  "source",
-  "pan",
-  "rate_slew_time",
-  "level_slew_time",
-  -- TODO(frederickk): sc_clear_region is not a valid param, if this is a
-  -- desired feature, I'll need to adjust param structure to accommodate start
-  -- and duration. buffer_clear_region (start, dur)
-  -- https://monome.org/docs/norns/api/modules/softcut.html#buffer_clear_region
-  -- "sc_clear_region"
+  "source",--1
+  "pre_level",--2
+  "pan",--3
+  "pan_slew_time",--4
+  "rate_slew_time",--5
+  "level_slew_time",--6
+  "post_filter_fc",--7
+  "post_filter_rq",--8
+  "post_filter_lp", --9
+  "post_filter_hp", --10
+  "post_filter_bp", --11
+  "post_filter_dry",--12
 }
 local param_names = {
   "source",
+  "S.O.S.",
   "pan",
-  "rate slew time",
-  "level slew time",
-  -- "clear region"
+  "pan slew",
+  "rate slew",
+  "level slew",
+  "filtCutOff",
+  "filter Q",
+  "Low Pass Filt",
+  "Hi Pass Filt",
+  "Band Pass Filt",
+   "filter DRY",
 }
 
 local softcut_param = function(self, x, y)
@@ -29,7 +39,11 @@ local softcut_param = function(self, x, y)
   local value = val or 0
   local source = (val == 1 and "in ext" or val == 2 and "in engine" or val == 3 and "both" or val == 0 and "off") or "off"
   local helper = param_names[param] .. " " .. (param == 1 and source or value)
-
+ 
+  --Filter Frequency Range
+  local mF = 40
+  local MF = 2000
+  -------------------------
   self.ports = { {1, 0, "in-playhead", "input"}, {2, 0, helper or "in-param", "input"}, {3, 0, helper or "in-value", "input"} }
 
   self:spawn(self.ports)
@@ -49,13 +63,54 @@ local softcut_param = function(self, x, y)
         audio.level_adc_cut(1)
         audio.level_eng_cut(1)
       end
-    elseif param == 2 then -- Pan
-      softcut[param_ids[param]](playhead, value % 3)
-    elseif param == #param_ids then
-      self.sc_clear_region(playhead, value)
+      
+    elseif param == 2 then --pre Level/ Sound on Sound recording  
+      softcut[param_ids[param]](playhead, value / 35)
+      
+    elseif param == 3 then -- Pan
+      softcut[param_ids[param]](playhead, value/35*2-1)
+      
+    elseif param == 4 then -- Pan slew time
+      softcut[param_ids[param]](playhead, value/35*2)
+    
+    elseif param == 5 then -- rate slew time
+      softcut[param_ids[param]](playhead, value/35*2)  
+      
+    elseif param == 6 then -- level slew time
+      softcut[param_ids[param]](playhead, value/35*2)    
+      
+    elseif param == 7 then -- filter cutoff
+      value = util.round(util.linlin(1, 35, mF, MF, val), 1)
+      softcut[param_ids[param]](playhead, value)
+    
+    elseif param == 8 then --filter Q  
+      softcut[param_ids[param]](playhead, value/35*2)
+    
+    elseif param == 9 then -- filter LowPass gain  
+      softcut[param_ids[param]](playhead, value / 35) 
+      
+    elseif param == 10 then -- filter HiPass gain  
+      softcut[param_ids[param]](playhead, value / 35) 
+    
+    elseif param == 11 then -- filter BandPass gain  
+      softcut[param_ids[param]](playhead, value / 35)   
+      
+    elseif param == 12 then -- filter dry gain
+      softcut[param_ids[param]](playhead, value / 35)  
+      
+      
+    
+   
+    
+    
     else
       softcut[param_ids[param]](playhead, value)
+      
+      
+    
     end
+    --print(param)
+    --print(value)  
   end
 end
 
