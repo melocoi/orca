@@ -11,17 +11,24 @@ local softcut_op = function(self, x, y)
   local l = self:listen(self.x + 4, self.y) or 18
   local level = util.round(l / 35, 0.01)
   local r = self:listen(self.x + 5, self.y) or 18
-  local rate = util.round(util.linlin(0, 36, -2, 2, r), 0.01)
+  local rate = util.round(util.linlin(0, 36, 0, 2, r), 0.01)
   local pos = self:listen(self.x + 6, self.y) or 18
 
-  softcut.pre_level(playhead, rec / 35)
+  --softcut.pre_level(playhead, rec / 35 / 2) 
   softcut.rec_level(playhead, rec / 35)
-  softcut.play(playhead, play > 0 and 1 or 0)
+  softcut.play(playhead, play > 0 and 1 or 1)
   softcut.rec(playhead, rec > 0 and 1 or 0)
+  
+  if play == 2 then
+    rate = rate * -1
+  else
+    rate = rate
+  end
+  
   softcut.rate(playhead, rate)
   softcut.level(playhead, level)
 
-  if self:glyph_at(self.x + 2, self.x) == "*" then
+  if self:glyph_at(self.x + 2, self.y) == "*" then
     self:write(2, 0, ".")
     softcut.buffer_clear_region(0, 35)
   end
@@ -30,6 +37,7 @@ local softcut_op = function(self, x, y)
     if play ~= 0 then
       self.sc_ops.pos[playhead] = pos
       softcut.position(playhead, pos)
+      --print(rate)
     end
   end
 end
