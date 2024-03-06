@@ -98,6 +98,13 @@ local orca = {
   },
 }
 
+function orca.ping()
+  if self.frame % 700 == 0 then
+        Screen.ping()
+  end
+end
+  
+
 function orca.normalize(n)
   return n == "e" and "F" or n == "b" and "C" or n
 end
@@ -112,7 +119,7 @@ function orca:transpose(n, o)
     local octave = util.clamp(self.normalize(string.sub(trans, 2)) + o, 0, 8)
     local value = tab.key(self.notes, note)
     local id = math.ceil(util.clamp((octave * 12) + value, 0, 127) - 1)
-
+--print(id)
     return {id, value, note, octave, music.note_num_to_name(id)}
   end
 
@@ -130,7 +137,7 @@ end
 function orca:get_scale(s, k)
   local name = music.SCALES[s].name
   local notes = music.generate_scale_of_length(k or 1, name, 8)
-
+--print(notes[7])
   return {string.lower(name), notes}
 end
 
@@ -162,7 +169,8 @@ function orca:notes_off(ch)
   local id = self:index_at(self.x, self.y)
   if self.active_notes[id] ~= nil then
     for k, v in pairs(self.active_notes[id]) do
-      local note, length = self.active_notes[id][k][1], util.clamp(self.active_notes[id][k][2], 1, 16)
+      local note, length = self.active_notes[id][k][1], self.active_notes[id][k][2]--util.clamp(self.active_notes[id][k][2], 1, 16)
+    
       if self.frame % length == 0 then
         self.midi_out_device:note_off(note, nil, ch)
         self.active_notes[id][k] = nil
@@ -456,6 +464,9 @@ function orca:operate()
 
   pt = {}
   self.frame = self.frame + 1
+  if self.frame % 1700 == 0 then
+        screen.ping()
+  end
 end
 
 --- grid
@@ -551,14 +562,18 @@ function orca:reload()
 
   engines.init(self)
 
-  redraw_metro = metro.init(function(stage)
-    redraw()
-  end, 1 / 60)
-  redraw_metro:start()
+ -- redraw_metro = metro.init(function(stage)
+  --  redraw()
+ -- end, 1 / 24)
+--  redraw_metro:start()
 
   clock.transport.start()
 
   screen.ping()
+end
+
+function refresh()
+    redraw()
 end
 
 local function add_params()
@@ -613,7 +628,8 @@ function update()
   while true do
     clock.sync(1 / 4) -- fires every quarter note
     orca:operate()
-    g:redraw()
+   -- g:redraw()
+   -- orca.ping()
   end
 end
 
@@ -818,7 +834,7 @@ local function draw_op_frame(x, y, b)
 end
 
 local function draw_grid()
-  screen.font_face(25)
+  screen.font_face(25) --25
   screen.font_size(6)
   for y = 1, bounds_y do
     for x = 1, bounds_x do
@@ -1023,6 +1039,7 @@ function redraw()
 
   draw_sliders()
   screen.update()
+  --print("I'm redrawing")
 end
 
 --- Writes Orca state params on script end.
